@@ -225,21 +225,25 @@ namespace Microsoft.VisualStudio.Editor.EmacsEmulation
 
         internal void UpdateStatus(string text, bool append = false)
         {
-            var dte = this.ServiceProvider.GetService<DTE>();
-            if (dte != null && dte.StatusBar != null)
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
-                if (append)
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var dte = this.ServiceProvider.GetService<EnvDTE80.DTE2>();
+                if (dte != null && dte.StatusBar != null)
                 {
-                    dte.StatusBar.Text += text;
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(text))
-                        dte.StatusBar.Clear();
+                    if (append)
+                    {
+                        dte.StatusBar.Text += text;
+                    }
                     else
-                        dte.StatusBar.Text = text;
+                    {
+                        if (string.IsNullOrEmpty(text))
+                            dte.StatusBar.Clear();
+                        else
+                            dte.StatusBar.Text = text;
+                    }
                 }
-            }
+            });
         }
 
         internal bool IsEmacsVskInstalled
